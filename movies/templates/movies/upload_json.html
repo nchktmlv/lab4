@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Загрузить JSON файл</title>
+</head>
+<body>
+    <h1>Загрузить JSON файл</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="json_file">Выберите файл:</label>
+        <input type="file" name="json_file" id="json_file">
+        <button type="submit">Загрузить</button>
+    </form>
+
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+
+    <a href="{% url 'movie_list' %}">Вернуться к списку фильмов</a>
+</body>
+</html>

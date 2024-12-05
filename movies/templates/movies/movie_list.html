@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Список фильмов</title>
+</head>
+<body>
+    <h1>Список фильмов</h1>
+
+    {% if json_files %}
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Название</th>
+                    <th>Жанр</th>
+                    <th>Год выпуска</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in json_files %}
+                    <tr>
+                        <td>{{ file.title }}</td>
+                        <td>{{ file.genre }}</td>
+                        <td>{{ file.year }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Нет данных для отображения.</p>
+    {% endif %}
+
+    <a href="{% url 'movie_form' %}">Добавить новый фильм</a>
+    <a href="{% url 'upload_json' %}">Загрузить JSON файл</a>
+</body>
+</html>
