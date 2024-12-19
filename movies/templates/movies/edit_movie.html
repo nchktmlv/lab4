@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Редактировать фильм</title>
+</head>
+<body>
+    <h1>Редактировать фильм</h1>
+
+    <form method="POST">
+    {% csrf_token %}
+    <label for="title">Название:</label>
+    <input type="text" id="title" name="title" value="{{ movie.title }}">
+
+    <label for="genre">Жанр:</label>
+    <input type="text" id="genre" name="genre" value="{{ movie.genre }}">
+
+    <label for="year">Год выпуска:</label>
+    <input type="text" id="year" name="year" value="{{ movie.year }}">
+
+    <button type="submit">Сохранить</button>
+</form>
+
+
+    <a href="{% url 'movie_list' %}">Назад к списку фильмов</a>
+</body>
+</html>

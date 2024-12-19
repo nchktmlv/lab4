@@ -6,30 +6,116 @@
 <body>
     <h1>Список фильмов</h1>
 
-    {% if json_files %}
+    <!-- Форма для выбора источника -->
+    <form method="get" action="{% url 'movie_list' %}">
+        <p>Выберите источник данных:</p>
+
+        <label>
+            <input type="radio" name="source" value="db"
+                   {% if source == 'db' %}checked{% endif %}
+                   onchange="this.form.submit()">
+            База данных
+        </label><br>
+
+        <label>
+            <input type="radio" name="source" value="json"
+                   {% if source == 'json' %}checked{% endif %}
+                   onchange="this.form.submit()">
+            JSON-файлы
+        </label>
+    </form>
+
+    <!-- Поле для AJAX-поиска, скрыто, если выбран источник JSON -->
+   <div id="ajax-search-container" style="display: {% if source == 'db' %}inline-block{% else %}none{% endif %};">
+    <h3>Поиск по названию (AJAX):</h3>
+    <input type="text" id="ajax-search" placeholder="Введите название фильма...">
+    <ul id="search-results"></ul>
+</div>
+
+
+    <!-- Скрипт для AJAX-поиска и скрытия/отображения поля поиска -->
+    <script>
+        function toggleSearchField() {
+            var searchField = document.getElementById('ajax-search');
+            var source = document.querySelector('input[name="source"]:checked').value;
+            if (source === 'db') {
+                searchField.style.display = 'inline-block';
+            } else {
+                searchField.style.display = 'none';
+            }
+            this.form.submit();
+        }
+
+        window.onload = function() {
+            toggleSearchField();
+        };
+
+        document.getElementById('ajax-search').addEventListener('input', function () {
+            const query = this.value;
+            const source = document.querySelector('input[name="source"]:checked').value;
+            const results = document.getElementById('search-results');
+            results.innerHTML = "";
+
+            if (query) {
+                fetch(`ajax_search/?query=${query}&source=${source}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(item => {
+                            const li = document.createElement('li');
+                            li.textContent = `${item.title} (${item.genre}, ${item.year})`;
+                            results.appendChild(li);
+                        });
+                    })
+                    .catch(err => {
+                        console.error("Ошибка AJAX-запроса:", err);
+                    });
+            }
+        });
+    </script>
+
+    <!-- Отображение данных -->
+    <h2>Данные из выбранного источника</h2>
+    {% if data %}
         <table border="1">
-            <thead>
-                <tr>
-                    <th>Название</th>
-                    <th>Жанр</th>
-                    <th>Год выпуска</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for file in json_files %}
-                    <tr>
-                        <td>{{ file.title }}</td>
-                        <td>{{ file.genre }}</td>
-                        <td>{{ file.year }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <thead>
+        <tr>
+            <th>Название</th>
+            <th>Жанр</th>
+            <th>Год выпуска</th>
+            {% if source == 'db' %} <!-- Поле "Действия" только для данных из БД -->
+                <th>Действия</th>
+            {% endif %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for record in data %}
+            <tr>
+                <td>{{ record.title }}</td>
+                <td>{{ record.genre }}</td>
+                <td>{{ record.year }}</td>
+                {% if source == 'db' %}
+                    <td>
+                        {% if record.id %}
+                            <a href="{% url 'edit_record' record_id=record.id %}">Редактировать</a> |
+                            <form method="POST" action="{% url 'delete_record' record_id=record.id %}" style="display:inline;" onsubmit="return confirm('Вы уверены, что хотите удалить эту запись?');">
+                                {% csrf_token %}
+                                <button type="submit">Удалить</button>
+                            </form>
+                        {% else %}
+                            <span>Ошибка: Нет ID</span>
+                        {% endif %}
+                    </td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
     {% else %}
-        <p>Нет данных для отображения.</p>
+        <p>Нет данных для отображения(((</p>
     {% endif %}
 
-    <a href="{% url 'movie_form' %}">Добавить новый фильм</a>
+    <a href="{% url 'add_movie' %}">Добавить новый фильм</a>
     <a href="{% url 'upload_json' %}">Загрузить JSON файл</a>
 </body>
 </html>
